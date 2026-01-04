@@ -26,9 +26,18 @@ private:
 
 
 public:
-	RomErrCd loadROM(const std::string& filename);
-	void disp_clear();
 
+	Chip8();
+	RomErrCd loadROM(const std::string& filename); // Loads ROM into memory
+
+
+	//Input Handling
+	bool IsKeyDown(uint8_t key) const;
+	void SetKeyDown(uint8_t key);
+	void SetKeyUp(uint8_t key);
+
+	//Chip8 Functions
+	void disp_clear();
 	void Op_1NNN();
 	void Op_2NNN();
 	void Op_3XNN();
@@ -40,8 +49,18 @@ public:
 	void Op_8XY1();
 	void Op_8XY2();
 	void Op_8XY3();
-	void Op_8XY4(); // Add Vy To Vx
-	void Op_8XY5(); // Subtract Vy From Vx
+	void Op_8XY4(); // Add Vy to Vx
+	void Op_8XY5(); // Subtract Vy from Vx
+	void Op_8XY6(); // Shift Vx to the right by 1
+	void Op_8XY7(); // Subtract Vx from Vy and store the result inside Vx
+	void Op_8XYE(); // Shift Vx to the left by 1
+	void Op_9XY0(); // Skips the next instruction if VX does not equal VY
+	void Op_ANNN(); // Sets I to the given address
+	void Op_BNNN(); // Set Address To given address + V0;
+
+	void Op_EX9E();
+	void Op_EXA1();
+	void Op_FX07();
 
 };
 

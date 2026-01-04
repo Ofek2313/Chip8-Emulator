@@ -124,10 +124,12 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Chip8.cpp" />
+    <ClCompile Include="Game.cpp" />
     <ClCompile Include="Main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Chip8.h" />
+    <ClInclude Include="Game.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
