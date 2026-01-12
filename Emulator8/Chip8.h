@@ -19,7 +19,7 @@ private:
 	uint8_t keys[16];
 	uint16_t stack[16];
 	uint8_t SP;
-	uint8_t display[64 * 32];
+	
 	uint8_t delayTimer;
 	uint8_t soundTimer;
 	uint16_t opcode;
@@ -27,17 +27,22 @@ private:
 
 public:
 
+	uint8_t display[32][64];
+
 	Chip8();
 	RomErrCd loadROM(const std::string& filename); // Loads ROM into memory
-
+	void EmulateCycle();
+	void UpdateTimers();
 
 	//Input Handling
 	bool IsKeyDown(uint8_t key) const;
 	void SetKeyDown(uint8_t key);
 	void SetKeyUp(uint8_t key);
+	
 
 	//Chip8 Functions
 	void disp_clear();
+	void Op_00EE();
 	void Op_1NNN();
 	void Op_2NNN();
 	void Op_3XNN();
@@ -57,10 +62,17 @@ public:
 	void Op_9XY0(); // Skips the next instruction if VX does not equal VY
 	void Op_ANNN(); // Sets I to the given address
 	void Op_BNNN(); // Set Address To given address + V0;
-
+	void Op_CXNN();
+	void Op_DXYN();
 	void Op_EX9E();
 	void Op_EXA1();
 	void Op_FX07();
-
+	void Op_FX0A();
+	void Op_FX15();
+	void Op_FX18();
+	void Op_FX1E();
+	void Op_FX29();
+	void Op_FX55();
+	void Op_FX65();
 };
 
