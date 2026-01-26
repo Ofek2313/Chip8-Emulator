@@ -1,6 +1,6 @@
 #include "Chip8.h"
 #include <fstream>
-
+#include <SDL3/SDL.h>
 Chip8::Chip8()
 {
 	memset(registers, 0, sizeof(registers)); //Set all registers as empty
@@ -8,8 +8,9 @@ Chip8::Chip8()
 	memset(display, 0, sizeof(display)); //Set display as blank
 	PC = 0x200; // Program Counter Starts at 0x200
 	I = 0x000;
-	delayTimer = 60;
-	soundTimer = 60;
+	delayTimer = 0;
+	soundTimer = 0;
+	SP = 0;
 }
 
 //ROM Loading
@@ -28,6 +29,7 @@ RomErrCd Chip8::loadROM(const std::string& filename)
 		return RomErrCd::FailedToRead;
 
 	file.close();
+	
 
 	return RomErrCd::None;
 }
@@ -37,6 +39,53 @@ void Chip8::UpdateTimers()
 		delayTimer--;
 	if (soundTimer > 0)
 		soundTimer--;
+}
+void Chip8::HandleInput()
+{
+	memset(keys, 0, sizeof(keys));
+
+	const bool* KeyboardState = SDL_GetKeyboardState(NULL);
+	if (KeyboardState[SDL_SCANCODE_1])
+		keys[0x1] = 1;
+	if (KeyboardState[SDL_SCANCODE_2])
+		keys[0x2] = 1;
+	if (KeyboardState[SDL_SCANCODE_3])
+		keys[0x3] = 1;
+	if (KeyboardState[SDL_SCANCODE_4])
+		keys[0xC] = 1;
+	if (KeyboardState[SDL_SCANCODE_Q])
+		keys[0x4] = 1;
+	if (KeyboardState[SDL_SCANCODE_W])
+		keys[0x5] = 1;
+	if (KeyboardState[SDL_SCANCODE_E])
+		keys[0x6] = 1;
+	if (KeyboardState[SDL_SCANCODE_R])
+		keys[0xD] = 1;
+	if (KeyboardState[SDL_SCANCODE_A])
+		keys[0x7] = 1;
+	if (KeyboardState[SDL_SCANCODE_S])
+		keys[0x8] = 1;
+	if (KeyboardState[SDL_SCANCODE_D])
+		keys[0x9] = 1;
+	if (KeyboardState[SDL_SCANCODE_F])
+		keys[0xE] = 1;
+	if (KeyboardState[SDL_SCANCODE_Z])
+		keys[0xA] = 1;
+	if (KeyboardState[SDL_SCANCODE_X])
+		keys[0x0] = 1;
+	if (KeyboardState[SDL_SCANCODE_C])
+		keys[0xB] = 1;
+	if (KeyboardState[SDL_SCANCODE_V])
+		keys[0xF] = 1;
+
+
+
+
+
+
+
+
+
 }
 void Chip8::EmulateCycle()
 {
@@ -294,7 +343,7 @@ void Chip8::Op_8XY5() {
 	uint8_t Vx = (opcode & 0x0F00) >> 8;
 	uint8_t Vy = (opcode & 0x00F0) >> 4;
 	
-	if (Vy > Vx)
+	if (registers[Vy] > registers[Vx])
 		registers[0xF] = 0;
 	else
 		registers[0xF] = 1;
@@ -311,7 +360,7 @@ void Chip8::Op_8XY7()
 {
 	uint8_t Vx = (opcode & 0x0F00) >> 8;
 	uint8_t Vy = (opcode & 0x00F0) >> 4;
-	if (Vx > Vy)
+	if (registers[Vx] > registers[Vy])
 		registers[0xF] = 0;
 	else
 		registers[0xF] = 1;
@@ -355,15 +404,18 @@ void Chip8::Op_DXYN()
 	uint8_t N = opcode & 0x000F;
 	uint8_t Vx = registers[X];
 	uint8_t Vy = registers[Y];
+
+	registers[0xF] = 0;
 	for (int i = 0; i < N; i++)
 	{
 		uint8_t row = memory[I + i];
 		for (int j = 0; j < 8; j++)
 		{
 			uint8_t bit = (row & (1 << (7-j))) >> (7-j);
-			if (display[(Vy + i)%64][(Vx + j)%32] == bit && bit == 1)
-				registers[0xF] = 0;
-			display[(Vy + i) % 32][(Vx + j) % 64] ^= bit;
+			uint8_t& pixel = display[(Vy + i) % 32][(Vx + j) % 64];
+			if ( (pixel & bit)==1)
+				registers[0xF] = 1;
+			pixel ^= bit;
 		}
 	}
 }
@@ -417,7 +469,8 @@ void Chip8::Op_FX1E()
 void Chip8::Op_FX29()
 {
 	uint8_t X = (opcode & 0x0F00) >> 8;
-	I = memory[registers[X]];
+	//I = 0x050 + registers[X] * 5;
+
 }
 void Chip8::Op_FX55()
 {

@@ -33,6 +33,7 @@ public:
 	RomErrCd loadROM(const std::string& filename); // Loads ROM into memory
 	void EmulateCycle();
 	void UpdateTimers();
+	void HandleInput();
 
 	//Input Handling
 	bool IsKeyDown(uint8_t key) const;

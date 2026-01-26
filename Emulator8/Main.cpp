@@ -2,9 +2,11 @@
 
 #include <iostream>
 #include "Chip8.h"
+
+
 bool InitVideo(SDL_Window*& window, SDL_Renderer*& renderer)
 {
-	if (!SDL_Init(SDL_INIT_VIDEO)) {
+	if (SDL_Init(SDL_INIT_VIDEO) < 0) {
 		std::cout << SDL_GetError() << std::endl;
 		return false;
 	}
@@ -16,21 +18,39 @@ bool InitVideo(SDL_Window*& window, SDL_Renderer*& renderer)
 	}
 	return true;
 }
-int main() {
+void SetFps(int m_frametime) {
+
+	if (m_frametime < 1000 / 60) {
+		SDL_Delay((1000 / 60) - m_frametime);
+	}
+
+}
+
+
+
+int main(int argc, char* argv[]) {
 	SDL_Window* window;
 	SDL_Renderer* renderer;
 	SDL_Event event;
 	Chip8 chip8;
-	chip8.loadROM("tetris.rom");	
+	if (argc > 1)
+		chip8.loadROM(argv[1]);
+	else
+		return 1;
+	
 
-
+	Uint64 frameStart;
+	Uint64 frameTime;
 
 	SDL_FRect pixel = { 0,0, 10, 10 };
 	bool running = InitVideo(window, renderer);
 	while (running)
 	{
-
-	
+		frameStart = SDL_GetTicks();
+		chip8.HandleInput();
+		for (int i = 0; i < 20; i++)
+			chip8.EmulateCycle();
+		chip8.UpdateTimers();
 		while (SDL_PollEvent(&event)) {
 			if (event.type == SDL_EVENT_QUIT) {
 				running = false;
@@ -38,9 +58,11 @@ int main() {
 			
 
 		}
-		
+	
+
 		SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
 		SDL_RenderClear(renderer);
+		
 		
 		for (int row = 0; row < 32; row++)
 		{
@@ -59,6 +81,8 @@ int main() {
 			}
 		}
 		SDL_RenderPresent(renderer);
+		frameTime = SDL_GetTicks() - frameStart;
+		SetFps(frameTime);
 	}
     return 0;
 }
